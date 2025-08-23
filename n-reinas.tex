@@ -1,0 +1,172 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{color}
+\usepackage{cite}
+\usepackage{array}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{url}
+%\usepackage{caption}
+
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+
+\title{Problema De Las N-Reinas}
+\author{	Camilo Campos González, 
+        	Ignacia Rodríguez Luengo
+        	y Francisco Muñoz Inostroza
+\thanks{Camilo Campos González, 
+        	Ignacia Rodríguez Luengo
+        	y Francisco Muñoz Inostroza son estudiantes de la carrera de Ingeniería Civil Informática del Departamento de Ingeniería Informática, Facultad de Ingeniería, Universidad Católica de la Santísima Concepción, Concepción, Chile. Email: \{ccamposg,irodriguezl,fmunozi\}@ing.ucsc.cl.}
+\thanks{Manuscrito recibido el 23 de Agosto de 2025.}}
+
+\markboth{Revista de Algoritmos Metaheurísticos Inspirados en la Naturaleza,~Vol.~22, No.~1, Agosto ~2025}
+{Shell \MakeLowercase{\textit{et al.}}: Bare Demo of IEEEtran.cls for Journals}
+
+\maketitle
+
+\begin{abstract} \label{sec:resumen}
+El problema de las N-Reinas consiste en colocar N-Reinas en un tablero de ajedrez de N x N casillas sin que estas se ataquen entre sí, entiéndase N como un número cualquiera distinto de 2 y 3 para los cuales no hay solución, es decir si N fuera 5 el desafío sería colocar 5 reinas en un tablero de ajedrez de 5 x 5 casillas sin que se ataquen, teniendo en cuenta que las reinas atacan diagonales, columnas y filas, para solucionar este problema usaremos un algoritmo genético. La solución desarrollada incluye una representación de individuos basada en arreglos de posiciones, una función de aptitud que evalúa colisiones, y operadores genéticos de selección por ruleta, cruce por partición y mutación aleatoria, usamos una población inicial de 100 individuos, 500 generaciones y 10 intentos para encontrar una solución factible, se observa que a medida que aumenta el número de reinas requeridas el tiempo de ejecución aumenta, y es más difícil encontrar una solución siendo recurrente que el algoritmo no logre encontrar una, esto nos da cuenta que los algoritmos genéticos son eficientes pero no perfectos, y es importante ajustar los parámetros para obtener soluciones acordes a lo que necesitemos ya sea eficiencia o eficacia.
+\end{abstract}
+
+\section{Introducción} \label{sec:introduccion}
+\IEEEPARstart{E}{l} desarrollo de un trabajo de investigación requiere de un esfuerzo metódico y ordenado el cual finaliza en un informe escrito. Este documento debe de seguir una estructura formal que permita mostrar los aspectos relevantes del trabajo realizado. El informe también debe de ser un trabajo original basado en fuentes serias y válidas. Por este motivo, es que se ha modificado una plantilla \LaTeX de la IEEE Transactions que sirva de apoyo para la elaboración de dichos documentos. En esta plantilla, el estudiante podrá plasmar su reporte con el apoyo de ecuaciones, tablas, figuras, algoritmos y citas bibliográficas las cuales deberán seguir un formato estándar definido para este tipo de trabajos. El material presentado debe ser elaborados completamente por el autor o autores del informe. Si no fuese así, entonces se debe referenciar la fuente de donde se obtuvo dicho material de ayuda.
+
+Este archivo de demostración tiene la intención de servir como un punto de partida para la elaboración de informes de investigación en la carrera de \emph{Ingeniería Civil Informática}. El formato de este documento esta basado en la plantilla utilizada para la presentación de un artículo de revista de la IEEE Transactions.
+
+La estructura de este informe está dividida en secciones y subsecciones. Esta división permite al lector seguir la secuencia del trabajo de investigación de forma ordenada y fluida. Así, en la sección de \textbf{introducción} introduce al lector en los \textit{antecedentes generales} de su investigación, en lo\textit{ que se conoce actualmente}, en la \textit{historia} del algoritmo a estudiar y en la \textit{inspiración y/o analogía con la naturaleza} que explota. 
+
+Las siguientes secciones de este informe se distribuye de la siguiente forma. En la Sección~\ref{sec:método} de \textbf{método} se entrega la \textit{representación o modelo} del algoritmo, los \textit{parámetros de funcionamiento}, los \textit{operadores evolutivos} y los \textit{mecanismos de selección y reemplazo}. En la Sección~\ref{sec:aplicaciones} de \textbf{aplicaciones} se dan a conocer el \textit{estado del arte} de las aplicaciones que se han resuelto con la metodología estudiada y se describe de manera breve y concisa uno de ellos. En la Sección~\ref{sec:conclusiones} de \textbf{conclusiones} se presenta un \textit{resumen del trabajo desarrollado}, las\textit{ ventajas y desventajas del algoritmo} estudiado y la \textit{contribución del trabajo} desarrollado.
+
+\section{Método} \label{sec:método}
+En esta sección se debe mencionar el \textbf{marco teórico} y el enfoque metodológico de cómo funciona el algoritmo seleccionado de estudio. Así, según la RAE~\cite{Rae2001} una metodología es un conjunto de métodos que se siguen en una investigación científica o en una exposición doctrinal
+
+\subsubsection{Subsubsección de Ejemplo de Fórmulas o Ecuaciones}
+Una de las potencialidades de Latex es su facilidad para escribir fórmulas o ecuaciones. Esto se puede realizar de diferentes maneras.
+
+La primera es escribir una fórmula que forma parte de una oración escribiéndola entre los símbolos de \$, por ejemplo, $\sum_{i=0}^{n}=\frac{x_i}{x_iy_i}$. En este caso la fórmula se acomoda al la altura de una línea de una oración.
+
+La segunda forma es escribir una fórmula que forma parte de una oración escribiéndola entre los símbolos de \$\$ dobles, por ejemplo, $$\sum_{i=0}^{n}=\frac{x_i}{x_iy_i}$$ en este caso la fórmula se escribe en una nueva línea aparte y después se sigue con el texto de la oración.
+
+Por último se puede usar el bloque \emph{equation} para escribir una fórmula y después poder referenciarla en el documento, como serías el caso de la ecuación~\ref{eq:ejemplo} que fue escrita.
+
+\begin{equation}
+    \sum_{i=0}^{n}=\frac{x_i}{x_iy_i}
+    \label{eq:ejemplo}
+\end{equation}
+
+\subsubsection{Subsubsección de Ejemplo de Tablas}
+Los conceptos importantes que provienen de fuentes externas de información deben de ser referenciadas. Por ejemplo, cuando se nombra algún método, mecanismo o idea importante como el algoritmo de ordenamiento Quicksort~\cite{Hoare1962}, estas debieran de estar acompañadas de su respectiva referencia bibliográfica. 
+
+Cuando una tabla es incluida en el informe a esta se le debe de asignar un identificador y una descripción. Cada tabla debe de ser nombrada o referenciada en el informe como puede ser visto en la Tabla~\ref{tab:ejemplo} que representan una instancia cualquiera de una tabla.
+
+
+\begin{table}[!ht]
+%\renewcommand{\arraystretch}{1.3}
+%\setlength{\extrarowheight}{10pt}
+\caption{Un Ejemplo de una Tabla}
+\label{tab:ejemplo}
+\centering
+\begin{tabular}{|l|c|r|p{2cm}|}
+\hline
+Encabezado1 & Encabezado2 & Encabezado3 & Encabezado4 \\
+\hline \hline
+Izquierda & Centrado & Derecha & Texto extenso en una columna de 2 centímetros de ancho.\\
+\hline
+One & Two & Three & Four\\
+\hline
+Uno & Dos & Tres & Cuatro\\
+\hline
+1 & 2 & 3 & 4\\
+\hline
+eins & zwei & drei & vier\\
+\hline
+uno & due & tre & quattro\\
+\hline
+un & deux & trois & quatre\\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Subsección de Ejemplo de Figuras}
+Cuando una figura es incluida en el informe a esta se le debe de asignar un identificador y una descripción. Cada figura debe de ser nombrada o referenciada en el informe como puede ser visto en la Figura~\ref{fig:sim} que representan una instancia cualquiera de una figura.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[scale=0.42]{./figuras/NIC}
+\caption{Ejemplo de descripción de una figura.}
+\label{fig:sim}
+\end{figure}
+
+Cuando la figura presentada no es propia, sino que fue obtenida de una fuente externa, se debe de decir de donde proviene, como se muestra en la Figura~\ref{fig:ine}.
+
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[scale=0.70]{./figuras/INE}
+\caption{Número de habitantes por regiones del censo 2002. Fuente INE.}
+\label{fig:ine}
+\end{figure}
+
+
+
+\subsubsection{Subsubsección de Ejemplo de Algoritmos}
+Latex también permite crear algoritmos o Pseudolenguaje utilizando algunas bibliotecas \emph{algorithm} y \emph{algorithmic}. Al igual que en el caso de las figuras y tableas, cuando un algoritmo es incluidos en el informe, a éste se le debe de asignar un identificador y una descripción. Cada algoritmo debe de ser nombrado o referenciado en el informe como puede ser visto en el Algoritmo~\ref{alg:ejemplo} que representan un ejemplo cualquiera de un algoritmo.
+
+
+\begin{algorithm}
+    \footnotesize
+    \floatname{algorithm}{Algoritmo}
+    \caption{Ejemplo de un algortimo en \LaTeX}
+    \label{alg:ejemplo}
+    \begin{algorithmic}[1]
+        \REQUIRE requiere de lo siguiente
+        \STATE Esta es una instrucción $X=({x}_{1}, {x}_{2}, ..., {x}_{n})$ cualquiera
+        \STATE Asignar ${X}_{mejor}=X$  \COMMENT{Este es un comentario}
+        \FOR{$i=0$ \TO $num\_iteraciones$}
+            \STATE Instrucción dentro del ciclo \emph{For}
+            \STATE Otra instrucción
+        
+            \IF{$Valor1 < Valor2$)} 
+                \STATE Instrucción si la condición es verdadera
+                \STATE Otra instrucción
+            \ELSE
+                \STATE Instrucción si la condición es falsa
+                \STATE Otra instrucción
+            \ENDIF
+        \ENDFOR
+        \WHILE{condición}
+            \STATE Instrucción mientras la condición sea \TRUE
+            \PRINT Imprime un resultado
+            \STATE Otra instrucción
+        \ENDWHILE
+        \REPEAT
+            \STATE Instrucción hasta que la condición sea \FALSE
+            \PRINT Imprime un otro resultado
+            \STATE Otra instrucción  
+        \UNTIL{condición1 \AND condición2 }   
+        \RETURN Instrucción para retornar un resultado
+    \end{algorithmic}
+\end{algorithm}
+
+
+
+\section{Aplicaciones} \label{sec:aplicaciones}
+En esta sección se muestra el \textit{estado del arte} de las aplicaciones que se han resuelto con la metodología estudiada, es decir, donde se indica lo último, más avanzado, tecnología de punta o al límite de conocimiento humano público sobre la metodología de estudio. Cada aplicación expuesta en el informe debe ir con su respectiva referencia bibliográfica que evidencia que la aplicación del algoritmo de estudio se aplicó a una problemática en particular.
+
+Finalmente, en esta sección se debe explicar del manera breve y concisa uno de ellos identificando algunos o todos los elementos vistos en la Sección~\ref{sec:método}.
+
+
+\section{Conclusiones} \label{sec:conclusiones}
+En las conclusiones se  debe de realizar un resumen del trabajo realizado en donde se indique los ventajas y desventajas del algoritmo estudiado y cual fue la contribución o aporte del trabajo desarrollado.
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,./bib/paper}
+\end{document}
