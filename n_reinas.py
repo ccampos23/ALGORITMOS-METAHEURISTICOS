@@ -1,13 +1,3 @@
-# Consideracion: El programa no asegura el exito en la primera ejecución del mismo, recomendado ejectutar mas de una vez para hayar la solución
-
-# integrantes: Javier Pino, Francisco Muñoz, Camilo Campos
-# grupo: 2
-
-# El calculo del fitnees consiste en revisar la cantidad de colisiones que existen en el tablero y calcular la diferencia con el numero de maximas
-# Colisiones posibles por tablero (n*(n-1)/2). Luego se seleccionan los 6 mejores individuos por poblacion basados en los que tengan mejor fitness,
-# para luego cruzar estos inidividuos y seleccionar una nueva poblacion de 30. Para el proceso de cruzamiento dividimos losindividuos a la mitad y los
-# mezclamos con la mitad de otro individuo, en el proceso se aplica mutacion a uno de los numeros (seleccionado aleatoriamente) de el individuo cambiandolo por otro
-# aleatorio.
 import random
 import math
 
