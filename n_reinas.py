@@ -1,5 +1,45 @@
 import random
 import math
+import time
+
+
+def generar_real_aleatorio():
+    return random.random()
+
+
+def generar_entero_aleatorio(n):
+    return random.randint(1, n)
+
+
+def inicializar_poblacion(tamaño_poblacion, n):
+    poblacion = []
+    for i in range(tamaño_poblacion):
+        aux = " "
+        # genero tableros con reinas en filas aleatorias
+        for j in range(n):
+            aux = str(aux) + str(generar_entero_aleatorio(n)) + " "
+        poblacion.append(list(aux.split()))
+    return poblacion
+
+
+def mutar_individuo(individuo, prob_mutacion, n):
+    if generar_real_aleatorio() < prob_mutacion:
+        # Seleccionar una posición aleatoria para mutar
+        posicion = random.randint(0, len(individuo) - 1)
+        individuo[posicion] = str(generar_entero_aleatorio(n))
+    return individuo
+
+
+def reducir_poblacion(poblacion, tamaño_deseado):
+    return poblacion[:tamaño_deseado]
+
+
+def cruzar_individuos(padre1, padre2):
+    """Cruzar dos individuos con un punto de cruza"""
+    punto_cruza = random.randint(1, len(padre1) - 1)
+    hijo1 = padre1[:punto_cruza] + padre2[punto_cruza:]
+    hijo2 = padre2[:punto_cruza] + padre1[punto_cruza:]
+    return hijo1, hijo2
 
 
 def fitness(tablero, n):
@@ -17,12 +57,12 @@ def fitness(tablero, n):
             ) == int(i):
                 acum = acum + 1
         columna_i = columna_i + 1
-    # n*(n-1)/3 es el maximo de colisiones que se pueden dar para un tablero de tamaño n asi que se le resta el acumulador para obtener el numero de no colisiones
+    # n*(n-1)/2 es el maximo de colisiones que se pueden dar para un tablero de tamaño n asi que se le resta el acumulador para obtener el numero de no colisiones
     return (n * (n - 1) / 2) - acum
 
 
 def select(poblacion, colisiones, num_select, mejores):
-    # se le seleccionan los que tengan menos colisiones
+    # se seleccionan los que tengan menos colisiones
     fitnes_total = sum(colisiones)
 
     if fitnes_total == 0:
@@ -42,37 +82,32 @@ def select(poblacion, colisiones, num_select, mejores):
     return mejores
 
 
-def cruzamiento(mejores, poblacion_inicial):
-    # crea listas para guardar heads(las primeros n/2 posiciones de la reina en el tablero) y tails(lo que resta de las posiciones) e hijos para guardar el cruzamiento
-    heads = []
-    tails = []
+def cruzamiento(mejores, poblacion_inicial, prob_cruza, prob_mutacion, n):
     hijos = []
-    # ciclo que separa los tableros en dos para asignarlas a heads
-    for i in range(len(mejores)):
-        lista = mejores[i]
-        aux = math.ceil(len(lista) / 2)
-        aux2 = [
-            lista[i : i + aux] for i in range(0, len(lista), aux)
-        ]  # [[2,3,1,4],[5,6,7,8]]
-        # factor de mutacion de un 50% (1: mutar, 2:pasar), si muta se asignan valores aleatorios a las posiciones
-        for j in range(len(aux2)):
-            if random.randint(1, 10) == 1:
-                parte_actual = aux2[j]
-                if len(parte_actual) > 0:  # Verificar que la parte no esté vacía
-                    # Índices corregidos (0-based)
-                    columna = random.randint(0, len(parte_actual) - 1)
-                    fila = random.randint(1, n)
-                    aux2[j][columna] = str(fila)
-        # se introducen las listas separadas a sus respectiva lista
-        heads.append(aux2[0])
-        tails.append(aux2[1])
-    # Se combinan en todas las posibilidades para dar 200 poblaciones nuevas distintas a las anteriores
+    
     while len(hijos) < poblacion_inicial:
-        i = random.randint(0, len(heads) - 1)
-        j = random.randint(0, len(tails) - 1)
-        if i != j:
-            hijos.append(heads[i] + tails[j])
-    return hijos[:poblacion_inicial]
+        # Seleccionar dos padres aleatoriamente
+        padre1 = random.choice(mejores)
+        padre2 = random.choice(mejores)
+        
+        # Decidir si aplicar cruzamiento según probabilidad
+        if generar_real_aleatorio() < prob_cruza:
+            hijo1, hijo2 = cruzar_individuos(padre1, padre2)
+        else:
+            # Si no hay cruzamiento, los hijos son copias de los padres
+            hijo1, hijo2 = padre1[:], padre2[:]
+        
+        # Aplicar mutación a cada hijo
+        hijo1 = mutar_individuo(hijo1, prob_mutacion, n)
+        hijo2 = mutar_individuo(hijo2, prob_mutacion, n)
+        
+        # Agregar hijos a la población
+        hijos.append(hijo1)
+        if len(hijos) < poblacion_inicial:
+            hijos.append(hijo2)
+    
+    # Reducir población al tamaño deseado
+    return reducir_poblacion(hijos, poblacion_inicial)
 
 
 def printTablero(tablero):  # Display de tablero
@@ -87,63 +122,75 @@ def printTablero(tablero):  # Display de tablero
         print(aux)
 
 
-# inicializan variables
-print("Ingrese n:")
+# inicializan variables y parámetros de entrada
+
+print("Valor de la semilla:")
+semilla = int(input())
+random.seed(semilla)
+
+print("Tamaño del tablero (N):")
 n = int(input())
+
+print("Tamaño de la poblacion:")
+poblacion_inicial = int(input())
+
+print("Probabilidad de cruza (0.0 - 1.0):")
+prob_cruza = float(input())
+
+print("Probabilidad de mutacion (0.0 - 1.0):")
+prob_mutacion = float(input())
+
+print("Numero de iteraciones:")
+generaciones = int(input())
 
 solucion_encontrada = False
 
 # Ejecutar hasta 10 intentos
 for intento in range(10):
-    poblacion = []
-    mejores = []
-    poblacion_inicial = 100
-    generaciones = 500
-    colisiones = []
-    solucion = 0
+    tiempo_inicio = time.time()  # Iniciar medición de tiempo
+    
+    # Genera una poblacion inicial aleatoria
+    poblacion = inicializar_poblacion(poblacion_inicial, n)
+    mejor_fitnes_global = 0
 
     # Genera una poblacion inicial aleatoria
-    for i in range(poblacion_inicial):
-        aux = " "
-        # genero tableros con reinas en filas aleatorias
-        for j in range(n):
-            aux = str(aux) + str(random.randint(1, n)) + " "
-        poblacion.append(list(aux.split()))
+    poblacion = inicializar_poblacion(poblacion_inicial, n)
 
     # ciclo principal de tamaño de generaciones
     for a in range(generaciones):
+        colisiones = []  # Reinicializar colisiones cada generación
+        
         # calcula y se guarda en colisiones el fitnes de la poblacion inicial
         for i in range(poblacion_inicial):
             colisiones.append(fitness(poblacion[i], n))
 
         # Buscar la mejor solución en esta generación
-        mejor_fitnes = 0
         for i in range(poblacion_inicial):
             if colisiones[i] == (n * (n - 1) / 2):  # comprueba le fitnes
-                solucion = poblacion[i]
-                print("SOLUCION ENCONTRADA = " + str(solucion) + "\n")
+                tiempo_fin = time.time()
+                tiempo_transcurrido = tiempo_fin - tiempo_inicio
+                print("SOLUCION ENCONTRADA = " + str(poblacion[i]) + "\n")
                 print("Tablero:")
-                printTablero(solucion)
+                printTablero(poblacion[i])
                 print(f"Fitness: {colisiones[i]}")
+                print(f"Tiempo del intento {intento + 1}: {tiempo_transcurrido:.4f} segundos")
                 solucion_encontrada = True
                 break
-            elif colisiones[i] > mejor_fitnes:
-                mejor_fitnes = colisiones[i]
+            elif colisiones[i] > mejor_fitnes_global:
+                mejor_fitnes_global = colisiones[i]
 
         if solucion_encontrada:
             break
 
-        mejores = select(
-            poblacion, colisiones, 50, mejores
-        )  # selecciona los mejores de la poblacion
-        poblacion = cruzamiento(mejores, poblacion_inicial)  # cruza los mejores
-        colisiones.clear()
-        mejores.clear()
+        mejores = select(poblacion, colisiones, int(poblacion_inicial * 0.25), [])  # selecciona el 25% de los mejores de la poblacion
+        poblacion = cruzamiento(mejores, poblacion_inicial, prob_cruza, prob_mutacion, n)  # cruza los mejores
 
     if solucion_encontrada:
         break
     else:
-        print(f"intento {intento + 1} sin exito, mejor fitnes: {mejor_fitnes}")
+        tiempo_fin = time.time()
+        tiempo_transcurrido = tiempo_fin - tiempo_inicio
+        print(f"intento {intento + 1} sin exito, mejor fitnes: {mejor_fitnes_global}, tiempo: {tiempo_transcurrido:.4f} segundos")
 
 if not solucion_encontrada:
     print("no se ha encontrado solucion")
