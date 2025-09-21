@@ -18,7 +18,6 @@ def generar_entero_aleatorio(n):
 def inicializar_poblacion(tamaño_poblacion, n):
     # genarar la poblacion con numpy
     poblacion_array = np.random.randint(1, n + 1, size=(tamaño_poblacion, n), dtype=np.int8)
-    # Convertir a lista de arrays para mantener compatibilidad
     poblacion = []
     for i in range(tamaño_poblacion):
         poblacion.append(poblacion_array[i])
@@ -27,15 +26,15 @@ def inicializar_poblacion(tamaño_poblacion, n):
 
 def mutar_individuo(individuo, prob_mutacion, n):
     if generar_real_aleatorio() < prob_mutacion:
-        # Seleccionar dos posiciones aleatorias para intercambiar
+        # seleccionar dos posiciones aleatorias para swapear
         posicion1 = random.randint(0, len(individuo) - 1)
         posicion2 = random.randint(0, len(individuo) - 1)
         
-        # Asegurar que las posiciones sean diferentes
+        # asegurar que las posiciones sean !=
         while posicion1 == posicion2:
             posicion2 = random.randint(0, len(individuo) - 1)
         
-        # Intercambiar los valores en las dos posiciones
+        # swap de los valores en las dos posiciones
         individuo[posicion1], individuo[posicion2] = individuo[posicion2], individuo[posicion1]
     
     return individuo
@@ -47,7 +46,6 @@ def reducir_poblacion(poblacion, tamaño_deseado):
 
 def cruzar_individuos(padre1, padre2):
     punto_cruza = random.randint(1, len(padre1) - 1)
-    # Usar slicing simple en lugar de concatenate para mayor eficiencia
     hijo1 = np.concatenate([padre1[:punto_cruza], padre2[punto_cruza:]])
     hijo2 = np.concatenate([padre2[:punto_cruza], padre1[punto_cruza:]])
     return hijo1, hijo2
@@ -71,12 +69,11 @@ def fitness(tablero, n):
 
 
 def seleccionar_padre(poblacion, colisiones):
-    """Selecciona un padre usando selección por ruleta"""
     fitnes_total = sum(colisiones)
     
-    # Manejo de caso especial: todos tienen fitness 0
+    # manejo de caso especial: todos tienen fitness 0
     if fitnes_total == 0:
-        return random.choice(poblacion).copy()  # Selección aleatoria uniforme
+        return random.choice(poblacion).copy()  # seleccion aleatoria uniforme
     
     ruleta = random.uniform(0, fitnes_total)
     acum = 0
@@ -84,50 +81,36 @@ def seleccionar_padre(poblacion, colisiones):
     for i in range(len(poblacion)):
         acum += colisiones[i]
         if ruleta <= acum:
-            return poblacion[i].copy()  # Retornar copia del individuo seleccionado
-    
-    # Fallback: esto indica un posible error numérico
-    print(f"Warning: Fallback activado. ruleta={ruleta}, fitnes_total={fitnes_total}")
-    return poblacion[-1].copy()
+            return poblacion[i].copy()
 
 
 def generar_nueva_poblacion(poblacion_actual, colisiones, tamaño_poblacion, prob_cruza, prob_mutacion, n):
     nueva_poblacion = []
     
     while len(nueva_poblacion) < tamaño_poblacion:
-        # Seleccionar dos padres usando ruleta
+        # seleccionar dos padres usando ruleta
         padre1 = seleccionar_padre(poblacion_actual, colisiones)
         padre2 = seleccionar_padre(poblacion_actual, colisiones)
         
-        # Decidir si aplicar cruzamiento según probabilidad
+        # decidir si aplicar cruzamiento segun probabilidad
         if generar_real_aleatorio() < prob_cruza:
-            # Se cruzan: generan dos hijos
             hijo1, hijo2 = cruzar_individuos(padre1, padre2)
             
-            # Aplicar mutación a cada hijo
+            # aplicar mutación a cada hijo
             hijo1 = mutar_individuo(hijo1, prob_mutacion, n)
             hijo2 = mutar_individuo(hijo2, prob_mutacion, n)
             
-            # Agregar hijos a la nueva población
+            # agregar hijos a la nueva poblacion
             nueva_poblacion.append(hijo1)
             if len(nueva_poblacion) < tamaño_poblacion:
                 nueva_poblacion.append(hijo2)
-        
-        # Si no se cruzan, no generan hijos y se seleccionan otros padres
-        # (el while continúa hasta llenar la población)
     
     return nueva_poblacion
 
 
 # inicializan variables y parámetros de entrada
 
-# Verificar que se pasen todos los argumentos necesarios
-if len(sys.argv) != 7:
-    print("Uso: python n_reinas_numpy.py <semilla> <tamaño_tablero> <tamaño_poblacion> <prob_cruza> <prob_mutacion> <generaciones>")
-    print("Ejemplo: python n_reinas_numpy.py 42 8 100 0.8 0.1 1000")
-    sys.exit(1)
-
-# Leer argumentos de línea de comandos
+# leer inputs
 semilla = int(sys.argv[1])
 n = int(sys.argv[2])
 poblacion_inicial = int(sys.argv[3])
@@ -135,7 +118,7 @@ prob_cruza = float(sys.argv[4])
 prob_mutacion = float(sys.argv[5])
 generaciones = int(sys.argv[6])
 
-# Mostrar parámetros utilizados
+# parametros utilizados
 print(f"Parámetros utilizados:")
 print(f"Semilla: {semilla}")
 print(f"Tamaño del tablero (N): {n}")
@@ -146,35 +129,35 @@ print(f"Número de generaciones: {generaciones}")
 print("-" * 50)
 
 random.seed(semilla)
-np.random.seed(semilla)  # También configurar semilla para NumPy
+np.random.seed(semilla) 
 
 solucion_encontrada = False
-resultados = []  # Lista para almacenar todos los resultados
+resultados = []  # lista para almacenar todos los resultados
 
-# Ejecutar hasta 10 intentos
+# ejecutar hasta 10 intentos
 for intento in range(10):
-    tiempo_inicio = time.time()  # Iniciar medición de tiempo
+    tiempo_inicio = time.time()  # iniciar medicion de tiempo
     
-    # Genera una poblacion inicial aleatoria
+    # genera una poblacion inicial aleatoria
     poblacion = inicializar_poblacion(poblacion_inicial, n)
     mejor_fitnes_global = 0
 
     # ciclo principal de tamaño de generaciones
     for a in range(generaciones):
-        colisiones = []  # Reinicializar colisiones cada generación
+        colisiones = []  # Reinicializar colisiones cada generacion
         
         # calcula y se guarda en colisiones el fitnes de la poblacion inicial
         for i in range(poblacion_inicial):
             colisiones.append(fitness(poblacion[i], n))
 
-        # Buscar la mejor solución en esta generación
+        # buscar la mejor solucion en esta generacion
         for i in range(poblacion_inicial):
             if colisiones[i] == (n * (n - 1) / 2):  # comprueba le fitnes
                 tiempo_fin = time.time()
                 tiempo_transcurrido = tiempo_fin - tiempo_inicio
                 solucion = str(poblacion[i])
                 
-                # Guardar resultado exitoso
+                # Guardar resultdao exitoso
                 resultados.append({
                     'Intento': intento + 1,
                     'Generacion': a + 1,
@@ -201,7 +184,7 @@ for intento in range(10):
         if solucion_encontrada:
             break
 
-        # Generar nueva población usando la nueva lógica
+        # generar nueva poblacion
         poblacion = generar_nueva_poblacion(poblacion, colisiones, poblacion_inicial, prob_cruza, prob_mutacion, n)
 
     if solucion_encontrada:
