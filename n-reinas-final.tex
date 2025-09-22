@@ -1,0 +1,439 @@
+\documentclass[journal]{IEEEtran}
+
+% Paquetes de idioma y codificación
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  showstringspaces=false,
+  breaklines=true
+}
+% Otros paquetes que ya tenías
+\usepackage[pdftex]{graphicx}
+\usepackage{color}
+\usepackage{cite} % este es el correcto para estilo IEEE
+\usepackage{array}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{url}
+\usepackage{pgfplots}
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+
+\title{Problema De Las N-Reinas}
+\author{	Camilo Campos González, 
+        	Ignacia Rodríguez Luengo
+        	y Francisco Muñoz Inostroza
+\thanks{Camilo Campos González, 
+        	Ignacia Rodríguez Luengo
+        	y Francisco Muñoz Inostroza son estudiantes de la carrera de Ingeniería Civil Informática del Departamento de Ingeniería Informática, Facultad de Ingeniería, Universidad Católica de la Santísima Concepción, Concepción, Chile. Email: \{ccamposg,irodriguezl,fmunozi\}@ing.ucsc.cl.}
+\thanks{Manuscrito recibido el 23 de Agosto de 2025.}}
+
+\markboth{Revista de Algoritmos Metaheurísticos Inspirados en la Naturaleza,~Vol.~22, No.~1, Agosto ~2025}
+{Shell \MakeLowercase{\textit{et al.}}: Bare Demo of IEEEtran.cls for Journals}
+
+\maketitle
+
+\begin{abstract} \label{sec:resumen}
+El ͏reto de͏ las N-Reinas es ͏un problema básico en o͏ptimización y se ha tra͏tado con varios métodos metaheurísticos. En este trabajo, se hace una revisión que compa͏ra dos formas de usar algoritmos genéticos para solu͏cionar este reto: una con listas p͏rop͏ias de Python y otra mejorad͏a con la biblioteca NumPy. Se midieron las dos maneras viendo tiemp͏o de e͏jecución y éxito en di͏ferentes tablero͏s. L͏os númer͏os dejan v͏er que, aun͏que las dos a͏yudan a ͏encontrar solu͏ciones buenas, la man͏era de usar NumPy da venta͏jas grande͏s al tratar problemas grandes. La fo͏rma con listas fue mej͏or en retos pequeños ya qu͏e ten͏ía menos carga al pri͏nci͏pio.
+
+\end{abstract}
+
+\section{Introducción}
+\IEEEPARstart
+El problema de las $N$-Reinas es un reto computacional clave que ha funcionado como espacio de prueba para muchas ideas de inteligencia artificial y mejoramiento combinatorio~\cite{bezzel1848}. Desde su creación en el siglo XIX este problema ha sido enfrentado de diferentes maneras, incluso \textit{backtracking}, búsqueda cercana y, más recientemente, métodos metaheurísticos inspirados en procesos naturales~\cite{talbi2009}.  
+
+Los algoritmos genéticos (AG), presentados por Holland en los años setenta~\cite{holland1975}, han mostrado ser muy útiles para solucionar problemas difíciles como el de las $N$-Reinas. Pero, la velocidad de estas implementaciones puede cambiar mucho según cómo se organizan los datos y las herramientas usadas~\cite{shukla2012}.  
+
+Python se ha vuelto muy popular para hacer pruebas rápidas en la ciencia porque su manera de escribir es simple, con sintaxis clara y con muchas bibliotecas útiles~\cite{hunter2007}. Sin embargo, su forma interpretada puede causar alta carga computacional en procesos pesados. \texttt{NumPy}, una herramienta clave para el cálculo científico en Python, soluciona este problema con operaciones vectorizadas y estructuras de datos afinadas~\cite{harris2020}.  
+
+Este trabajo hace algo doble: primero, muestra dos formas completas de hacer algoritmos genéticos para el problema de las $N$-Reinas; segundo, da un análisis que mira las cosas buenas y malas de cada manera en cuanto a cómo funciona, cuánto espacio usa y qué tan bien resuelve el problema.
+
+
+
+\section{Método} \label{sec:método}
+El problema se trata de poner varias reinas en un tablero grande, pero sin que se amenacen entre ellas. En concreto, en uno cuadrado de $N \times N$ casillas, hay que poner $N$ reinas para que no estén en la misma fila, columna o diagonal \cite{dijkstra1959note}.  
+La complejidad crece factorialmente con $N$, haciendo inviable la fuerza bruta para valores más altos de $N$ \cite{moon1999genetic}.  
+
+Los algoritmos genéticos son un tipo de técnica que trata de encontrar soluciones buenas siguiendo la forma en que las cosas cambian en la naturaleza; tienen un grupo de soluciones posibles que cambian por medio de selección, cruce y mutación \cite{goldberg1989genetic}. La aptitud (fitness) de cada persona dice cuán probable es que se reproduzcan, llevando al grupo hacia soluciones mejores.  
+
+Ambas formas usan la representación común para el problema de $N$-Reinas: un conjunto de $N$ números donde el lugar $i$-ésimo muestra qué columna tiene la reina en la fila $i$ \cite{takefuji1991artificial}. Esta forma evita que haya dos reinas juntas en una misma fila.  
+
+\textbf{Forma con listas:} usa listas originales de Python para representar individuos y cantidades. 
+
+\textbf{Forma con NumPy:} usa arreglos de NumPy para optimizar el almacenamiento y las operaciones con números.  
+
+Ambas implementaciones usan la misma función de fitness que mide los choques entre reinas:
+
+\begin{lstlisting}[language=Python, caption={Función de fitness para el problema de las $N$-Reinas}]
+def fitness(tablero, n):
+    acum = 0
+    size = len(tablero)
+    columna_i = 0
+    for i in tablero:
+        for j in range(columna_i + 1, size):
+            if i == tablero[j]:  # Conflicto en columna
+                acum = acum + 1
+            # Conflicto en diagonal
+            if int(tablero[j]) + (j - columna_i) == int(i) or int(tablero[j]) - (j - columna_i) == int(i):
+                acum = acum + 1
+        columna_i = columna_i + 1
+    return (n * (n - 1) / 2) - acum
+\end{lstlisting}
+
+Ambas implementaciones utilizan los mismos operadores genéticos para poder compararlos.  
+\begin{itemize}
+    \item \textbf{Selección:} Método de ruleta con manejo de caso especial cuando todos los individuos tienen fitness cero.
+    \item \textbf{Cruce:} Cruzamiento en un punto (\textit{single-point crossover}).
+    \item \textbf{Mutación:} Intercambio de dos posiciones aleatorias con probabilidad configurable.
+\end{itemize}
+
+\subsection{Inicialización de Población}
+
+\textbf{Implementación con Listas:}
+
+En l͏a implementa͏ción con listas, la pobla͏ción se ͏hace secuencialm͏ente͏ usando un ciclo que crea cada individuo como u͏na serie de números al a͏zar. Esta acción es clara y cre͏a la poblacion juntando valores en ͏una cadena de texto que después se parte para hacer una lista.
+\newpage
+\begin{lstlisting}[language=Python, caption={Inicialización de la población usando listas}]
+def inicializar_poblacion(tamaño_poblacion, n):
+    poblacion = []
+    for i in range(tamaño_poblacion):
+        aux = " "
+        for j in range(n):
+            aux = str(aux) + str(generar_entero_aleatorio(n)) + " "
+        poblacion.append(list(aux.split()))
+    return poblacion
+\end{lstlisting}
+
+\textbf{Implementación con NumPy:}
+
+En la implementación con NumPy, la población se crea usando la función \texttt{np.random.randint}, que hace un arreglo de números aleatorios forma vectorizada. Después
+, cada individuo es extraído del arreglo y convertido a una lista para usarlo m͏ás tarde. A pesar que la vectorización me͏jor͏a rapidez, ca͏mbiar a lista sum͏a u͏n peso extra.
+
+\begin{lstlisting}[language=Python, caption={Inicialización de la población usando NumPy}]
+import numpy as np
+
+def inicializar_poblacion(tamaño_poblacion, n):
+    poblacion_array = np.random.randint(1, n + 1, size=(tamaño_poblacion, n), dtype=np.int8)
+    poblacion = []
+    for i in range(tamaño_poblacion):
+        poblacion.append(poblacion_array[i])
+    return poblacion
+\end{lstlisting}
+
+\subsection{Operaciones de Cruce}
+
+\textbf{Implementación con Listas:}
+
+El cruce de individuos en el método de listas usa el símbolo \texttt{+} para juntar las partes de lis͏ta de los padres, haciendo así los hijos. E͏st͏a for͏ma es simple, pero no s͏iem͏pre la me͏jor cuando se usan gran͏des cantidades de datos͏.
+
+\begin{lstlisting}[language=Python, caption={Cruce con listas}]
+def cruzar_individuos(padre1, padre2):
+    punto_cruza = random.randint(1, len(padre1) - 1)
+    hijo1 = padre1[:punto_cruza] + padre2[punto_cruza:]
+    hijo2 = padre2[:punto_cruza] + padre1[punto_cruza:]
+    return hijo1, hijo2
+\end{lstlisting}
+
+\textbf{Implementación con NumPy:}
+
+En la implementación con NumPy, el cruce se realiza mediante la función \texttt{np.concatenate}, que está mejorada para el͏ manejo͏ de arrays. Sin ͏embarg͏o, ͏el acto de slicing  e͏n los arrays de NumPy p͏uede ser más co͏stoso que en las listas, depend͏ie͏ndo del tamaño del array.
+
+\begin{lstlisting}[language=Python, caption={Cruce con NumPy}]
+def cruzar_individuos(padre1, padre2):
+    punto_cruza = random.randint(1, len(padre1) - 1)
+    hijo1 = np.concatenate([padre1[:punto_cruza], padre2[punto_cruza:]])
+    hijo2 = np.concatenate([padre2[:punto_cruza], padre1[punto_cruza:]])
+    return hijo1, hijo2
+\end{lstlisting}
+
+\subsection{Manejo de Copias}
+
+\textbf{Implementación con Listas:}
+
+En la implementación con listas, se usa el slicing (\texttt{[:]}) para hacer u͏na copia superficial del individuo. A pesar de ser una͏
+En la ͏forma c͏orrecta, no es la mejor opción.
+
+\begin{lstlisting}[language=Python, caption={Copia con listas}]
+return poblacion[i][:]  # slicing para copia superficial
+\end{lstlisting}
+
+\textbf{Implementación con NumPy:}
+
+En la implementación con NumPy, se utiliza el método \texttt{.copy()}, que es más rápido y est͏á especialmente hecho para hacer copias de arreglos͏ ͏e͏n NumPy.
+
+\begin{lstlisting}[language=Python, caption={Copia con NumPy}]
+return poblacion[i].copy()  # método explícito de copia
+\end{lstlisting}
+
+\subsection{Configuración de Semillas}
+
+\textbf{Implementación con Listas:}
+
+En la implementación con listas, se configura la semilla utilizando la función \texttt{random.seed()}, lo que asegura que la generación de números aleatorios sea reproducible.
+
+\begin{lstlisting}[language=Python, caption={Semilla con listas}]
+random.seed(semilla)
+\end{lstlisting}
+
+\textbf{Implementación con NumPy:}
+
+En la implementación con NumPy, además de la semilla para \texttt{random}, es necesario ajustar la semilla de \texttt{np.random} para asegurar que las operac͏ion͏es vectoriales sean repetibles.
+
+\begin{lstlisting}[language=Python, caption={Semilla con NumPy}]
+random.seed(semilla)
+np.random.seed(semilla)  # Semilla adicional para NumPy
+\end{lstlisting}
+
+
+
+\section{Resultados (Comparativa Python vs NumPy)}
+La prueba en la cual recaudamos los siguientes datos, consistio en ejecutar este programa dos veces: una con Python puro y otra utilizando la biblioteca NumPy. Ambas pruebas se realizaron con los mismos parámetros de entrada para garantizar una comparación justa.  
+\\Los componentes de la maquina en la cual se realizo esats pruebas fueron:
+\\marca hp, 
+con un procesador AMD RYZEN 7 4800H a una frecuencia de  2,90 GHZ, 
+\\ 16 GB de memoria  RAM, 
+\\el lenguaje utilizado fue Python en Visual Studio Code, 
+\\en el sistema operativo Windows 10
+\\los parametros de pruebas en ambos casos fueron: 
+
+ \begin{table}[h!]
+\centering
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Parámetro} & \textbf{Valor} \\
+\hline
+Semilla & 100 \\
+\hline
+Poblacion & 200 \\
+\hline
+Prob\_Cruza & 0,8 \\
+\hline
+Prob\_Mutacion & 0,2 \\
+\hline
+Max\_Generaciones & 300 \\
+\hline
+\end{tabular}
+\caption{Parámetros del Algoritmo Genético.}
+\label{tab:parametros_vertical}
+\end{table}
+
+\\Analisis figura 1 :
+El gráfico muestra una tendencia creciente en el tiempo de ejecución a medida que aumenta el tamaño del tablero N en ambas curvas, tanto para Python puro como para NumPy, siguen una trayectoria similar, indicando la creciente complejidad del problema. Para valores pequeños de N, el tiempo es insignificante y las diferencias entre ambas implementaciones son mínimas. Sin embargo, a medida que N aumenta, la curva de NumPy tiende a mantenerse ligeramente por encima de la de Python en este resumen de datos. Esto podría deberse a la forma en que los datos fueron promediados o seleccionados para la tabla resumida, ya que en el análisis inicial se observó que NumPy era generalmente más rápido. Es crucial recalcar que NumPy brilla en la manipulación eficiente de arreglos, lo que a menudo se traduce en menor tiempo de ejecución para operaciones intensivas. La pequeña diferencia a favor de Python en este gráfico específico de tiempo promedio podría indicar variabilidad en las ejecuciones o en la forma en que se capturaron los tiempos mínimos/promedios en las tablas originales.
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{N} & \textbf{Tiempo (s) - Python Puro} & \textbf{Tiempo (s) - NumPy} \\
+\hline
+4 & 0,002 & 0,003 \\
+\hline
+5 & 0,003 & 0,005 \\
+\hline
+6 & 0,05 & 0,1075 \\
+\hline
+7 & 0,8658 & 0,8139 \\
+\hline
+8 & 1,40 & 1,63 \\
+\hline
+9 & 1,67 & 1,90 \\
+\hline
+10 & 1,93 & 2,20 \\
+\hline
+15 & 3,80 & 4,16 \\
+\hline
+20 & 6,39 & 6,86 \\
+\hline
+25 & 9,66 & 10,29 \\
+\hline
+\end{tabular}
+\caption{Comparación del tiempo de solución entre Python y NumPy.}
+\label{tab:tiempo_resumen}
+\end{table} 
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    title={Tiempo vs. N},
+    xlabel={N},
+    ylabel={Tiempo (s)},
+    xmin=3.5, xmax=25.5,
+    ymin=0, ymax=11,
+    xtick={4,5,6,7,8,9,10,15,20,25},
+    legend pos=north west,
+    ymajorgrids=true,
+    grid style=dashed,
+    width=0.4\textwidth, % Se redujo el ancho aquí
+    height=4.5cm,
+    legend entries={Python Puro, NumPy},
+    legend style={at={(0.03,0.97)},anchor=north west, font=\footnotesize},
+    every axis plot/.append style={line width=0.8pt},
+    tick label style={font=\tiny},
+    label style={font=\footnotesize},
+    title style={font=\small},
+]
+\addplot[
+    color=blue,
+    mark=square*,
+    ]
+    coordinates {
+    (4,0.002)(5,0.003)(6,0.05)(7,0.8658)(8,1.40)(9,1.67)(10,1.93)(15,3.80)(20,6.39)(25,9.66)
+    };
+\addplot[
+    color=red,
+    mark=o,
+    ]
+    coordinates {
+    (4,0.003)(5,0.005)(6,0.1075)(7,0.8139)(8,1.63)(9,1.90)(10,2.20)(15,4.16)(20,6.86)(25,10.29)
+    };
+\end{axis}
+\end{tikzpicture}
+\caption{Comparación del tiempo de solución.}
+\label{fig:tiempo_solucion_comparacion_small}
+\end{figure}
+
+Analisis figura2: Este grafico muestra una mayor variabilidad en el numero de generaciones necesarias para encontrar una solucion, lo cual es típico en algoritmos genéticos. Observamos que para N=8, NumPy encontro una solución en 95 generaciones, mientras que Python puro no lo logro dentro de las 300 generaciones. Para N=9, Python puro fue mas eficiente en terminos de generaciones (106 vs 242). Para N=10, Python puro encontró una solución en 68 generaciones, mientras que NumPy alcanzó el limite. A partir de N=15, ninguna de las implementaciones logro encontrar una solucion en el límite de 300 generaciones. Esto sugiere que para problemas más grandes (N ≥ 15), el algoritmo genético, con los parametros actuales, puede tener dificultades para converger a una solución óptima dentro del numero máximo de iteraciones. Las diferencias en las generaciones exitosas demuestran que, aunque NumPy es generalmente mas rapido, la eficacia en la convergencia puede depender de la configuración específica del problema y la aleatoriedad intrínseca del algoritmo.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{N} & \textbf{Generaciones - Python} & \textbf{Generaciones - NumPy} \\
+\hline
+4 & 1 & 1 \\
+\hline
+5 & 1 & 2 \\
+\hline
+6 & 15 & 27 \\
+\hline
+7 & 212 & 176 \\
+\hline
+8 & 300 & 95 \\
+\hline
+9 & 106 & 242 \\
+\hline
+10 & 68 & 300 \\
+\hline
+15 & 300 & 300 \\
+\hline
+20 & 300 & 300 \\
+\hline
+25 & 300 & 300 \\
+\hline
+\end{tabular}
+\caption{Comparación de generaciones necesarias para encontrar solución.}
+\label{tab:generaciones_resumen}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    title={Generaciones vs. N},
+    xlabel={N},
+    ylabel={Generaciones},
+    xmin=3.5, xmax=25.5,
+    ymin=0, ymax=310,
+    xtick={4,5,6,7,8,9,10,15,20,25},
+    ytick={0,50,100,150,200,250,300},
+    legend pos=north west,
+    ymajorgrids=true,
+    grid style=dashed,
+    width=0.4\textwidth, % Se redujo el ancho aquí
+    height=4.5cm,
+    legend entries={Python Puro, NumPy},
+    legend style={at={(0.03,0.97)},anchor=north west, font=\footnotesize},
+    every axis plot/.append style={line width=0.8pt},
+    tick label style={font=\tiny},
+    label style={font=\footnotesize},
+    title style={font=\small},
+]
+\addplot[
+    color=blue,
+    mark=square*,
+    ]
+    coordinates {
+    (4,1)(5,1)(6,15)(7,212)(8,300)(9,106)(10,68)(15,300)(20,300)(25,300)
+    };
+\addplot[
+    color=red,
+    mark=o,
+    ]
+    coordinates {
+    (4,1)(5,2)(6,27)(7,176)(8,95)(9,242)(10,300)(15,300)(20,300)(25,300)
+    };
+\end{axis}
+\end{tikzpicture}
+\caption{Comparación de generaciones.}
+\label{fig:generaciones_comparacion_small}
+\end{figure}
+
+Analisis fugura 3:
+Para el caso de N=25, ninguna de las implementaciones logro encontrar una solución dentro de las 300 generaciones, lo que indica que el problema es significativamente más difícil para el algoritmo con los parametros actuales. El grafico de barras se muestra que el tiempo promedio de busqueda fue similar para ambos casos (aproximadamente 9.64 segundos para Python y 10.29 segundos para NumPy). En términos de fitness el final alcanzado, ambos algoritmos lograron un fitness muy cercano (288.0 para Python y 287.5 para NumPy). Esto sugiere que, aunque no se encontró la solucion optima, ambos llegaron a un estado de calidad similar en la población final. La principal conclusion es que para N=25, se necesitarían ajustes en los parametros del algoritmo genetico (como un mayor numero de generaciones, una población más grande o diferentes probabilidades de cruza/mutación) para aumentar las posibilidades de exito, o bien explorar estrategias de optimización adicionales.
+
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Métrica} & \textbf{Python Puro} & \textbf{NumPy} \\
+\hline
+\textbf{Tiempo Promedio de Búsqueda} & 9,64 s & 10,29 s \\
+\hline
+\textbf{Fitness Promedio Final} & 288,0 & 287,5 \\
+\hline
+\textbf{Solución Encontrada} & NO & NO \\
+\hline
+\end{tabular}
+\caption{Resumen de resultados para N=25.}
+\label{tab:final_resumen}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    title={Resultados Finales para N=25},
+    ybar,
+    bar width=0.4cm,
+    ymin=0, ymax=12,
+    ylabel={Valor},
+    symbolic x coords={Tiempo (s),Fitness},
+    xtick=data,
+    nodes near coords,
+    nodes near coords style={font=\footnotesize, yshift=0.2cm},
+    legend pos=north west,
+    legend entries={Python Puro, NumPy},
+    ymajorgrids=true,
+    grid style=dashed,
+    width=0.5\textwidth,
+    height=4cm,
+    tick label style={font=\footnotesize},
+    label style={font=\small},
+    title style={font=\normalsize},
+]
+\addplot[blue, fill=blue!30] coordinates {("Tiempo (s)",9.64) ("Fitness",288.0)};
+\addplot[red, fill=red!30] coordinates {("Tiempo (s)",10.29) ("Fitness",287.5)};
+\end{axis}
+\end{tikzpicture}
+\caption{Comparación de métricas finales para N=25.}
+\label{fig:n25_comparacion}
+\end{figure}
+
+
+
+\section{Conclusiones} \label{sec:conclusiones}
+El analisis de los resultados confirma que al utilizar  la libreria \textbf{NumPy} en el problema de las N-Reinas proporciona una ventaja significativa en el rendimiento , especialmente a medida que el tamaño del problema crece. Aunque las soluciones encontradas y los valores de fitness son comparables en ambas de las implementaciones, aun que en los tiempos de ejecucion demuestran que las \textbf{operaciones vectorizadas} de NumPy son considerablemente mas eficientes que los bucles tradicionales de Python.
+
+Esta diferencia de rendimiento es crucial en el ambito de la computacion cientifica ,ya que,el analisis de datos, donde la manipulacion de grandes arreglos y matrices es fundamental. Se concluye que, para problemas que implican una gran cantidad de operaciones numericas la implementacion con NumPy es la opcion mas recomendable para optimizar el rendimiento y reducir los tiempos de los procesamiento.
+\bibliographystyle{IEEEtran}
+\bibliography{referencias}
+\end{document}
